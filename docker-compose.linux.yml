@@ -19,6 +19,22 @@ services:
     # Remove extra_hosts when using host mode  
     extra_hosts: []
 
+  rag-api:
+    network_mode: host
+    environment:
+      - OLLAMA_HOST=127.0.0.1:11434
+      - CHROMA_HOST=127.0.0.1:8000
+      - HTTP_PORT=8004
+    # Remove extra_hosts when using host mode  
+    extra_hosts: []
+
+  open-webui:
+    network_mode: host
+    environment:
+      - OLLAMA_BASE_URL=http://127.0.0.1:11434
+    # Remove extra_hosts when using host mode  
+    extra_hosts: []
+
   chat-interface:
     network_mode: host
     environment:

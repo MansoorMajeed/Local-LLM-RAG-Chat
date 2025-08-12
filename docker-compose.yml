@@ -67,11 +67,57 @@ services:
       - "host-gateway:host-gateway"
     stdin_open: true
     tty: true
+    command: ["python", "/app/server_fastmcp.py"]
     deploy:
       resources:
         limits:
           memory: 1G
           cpus: '0.5'
+
+  rag-api:
+    build:
+      context: ./mcp-server
+      dockerfile: Dockerfile
+    depends_on:
+      - chroma
+    volumes:
+      - ./mcp-server:/app
+    environment:
+      - CHROMA_HOST=${CHROMA_HOST:-chroma:8000}
+      - OLLAMA_HOST=${OLLAMA_HOST:-host.docker.internal:11434}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-mxbai-embed-large}
+      - HTTP_PORT=8003
+    ports:
+      - "8003:8003"
+    extra_hosts:
+      - "host-gateway:host-gateway"
+    command: ["python", "/app/http_server.py"]
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+          cpus: '0.5'
+
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:main
+    depends_on:
+      - rag-api
+    volumes:
+      - open_webui_data:/app/backend/data
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_HOST:-http://host.docker.internal:11434}
+      - WEBUI_NAME="Local RAG Chat"
+      - ENABLE_SIGNUP=${ENABLE_SIGNUP:-true}
+      - DEFAULT_USER_ROLE=${DEFAULT_USER_ROLE:-user}
+    ports:
+      - "8080:8080"
+    extra_hosts:
+      - "host-gateway:host-gateway"
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '1.0'
 
   chat-interface:
     build:
@@ -86,7 +132,7 @@ services:
       - PROCESSOR_HOST=${PROCESSOR_HOST:-processor:8001}
       - CHAT_MODEL=${CHAT_MODEL:-llama3.1:8b}
     ports:
-      - "8003:8003"
+      - "8005:8003"
     extra_hosts:
       - "host-gateway:host-gateway"
     deploy:
@@ -94,6 +140,9 @@ services:
         limits:
           memory: 1G
           cpus: '0.5'
+    profiles:
+      - legacy
 
 volumes:
   chroma_data:
+  open_webui_data:
