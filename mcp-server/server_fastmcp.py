@@ -217,11 +217,22 @@ async def search_by_source(
         return f"Error searching by source: {e}"
 
 if __name__ == "__main__":
+    import sys
+    
     logger.info("Starting Local RAG MCP Server with FastMCP")
     logger.info(f"Configuration:")
     logger.info(f"  CHROMA_HOST: {CHROMA_HOST}")
     logger.info(f"  OLLAMA_HOST: {OLLAMA_HOST}")
     logger.info(f"  EMBEDDING_MODEL: {EMBEDDING_MODEL}")
     
-    # Run the server using stdio transport
-    mcp.run(transport='stdio')
+    # Check if HTTP mode is requested
+    if len(sys.argv) > 1 and sys.argv[1] == "--http":
+        logger.info("Starting HTTP server on port 8002")
+        # Use FastAPI directly since FastMCP might not support HTTP transport
+        import uvicorn
+        app = mcp.create_app()
+        uvicorn.run(app, host='0.0.0.0', port=8002)
+    else:
+        logger.info("Starting stdio transport for MCP")
+        # Run the server using stdio transport
+        mcp.run(transport='stdio')

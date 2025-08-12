@@ -1,0 +1,146 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Local RAG API",
+    "description": "Search through personal documents using vector similarity",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8004",
+      "description": "Local RAG Server"
+    }
+  ],
+  "paths": {
+    "/search": {
+      "post": {
+        "summary": "Search Documents",
+        "description": "Search through documents using vector similarity to find relevant content",
+        "operationId": "searchDocuments",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["query"],
+                "properties": {
+                  "query": {
+                    "type": "string",
+                    "description": "The search query to find relevant documents"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "default": 5,
+                    "minimum": 1,
+                    "maximum": 20,
+                    "description": "Maximum number of results to return"
+                  },
+                  "min_similarity": {
+                    "type": "number",
+                    "default": 0.3,
+                    "minimum": 0.0,
+                    "maximum": 1.0,
+                    "description": "Minimum similarity threshold (0.0-1.0)"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Search results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "results": {
+                      "type": "string",
+                      "description": "Formatted search results with document content and metadata"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "Error message"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/document-info": {
+      "post": {
+        "summary": "Get Document Information", 
+        "description": "Get information about indexed documents in the RAG database",
+        "operationId": "getDocumentInfo",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file_name": {
+                    "type": "string",
+                    "nullable": true,
+                    "description": "Specific file name to get info for (optional). If not provided, returns overall collection statistics"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Document information",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "info": {
+                      "type": "string",
+                      "description": "Document information or collection statistics"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "detail": {
+                      "type": "string",
+                      "description": "Error message"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
